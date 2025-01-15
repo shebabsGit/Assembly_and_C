@@ -1,0 +1,27 @@
+00000000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 15/01/2025 13:55:36
+
+00000000                             1  
+00000000                             2  
+00000000                             3  START:
+00000000                             4  
+00000000  720F                       5      MOVE.L #%00001111,D1  ; "0F" moved to D1
+00000002  1401                       6      MOVE.B D1,D2          ; contents of D1 moved to D2
+00000004  11C1 2000                  7      MOVE.B D1,$2000       ; contents to D1 moved to memory location 2000
+00000008  1438 2000                  8      MOVE.B $2000,D2       ; contents of memory location 2000 moved to D2
+0000000C  11F8 2000 3000             9      MOVE.B $2000,$3000    ; contents of memory location 2000 moved to memory location 3000
+00000012                            10      
+00000012                            11                            ; All registers and memory locations named above have "00001111" or "0F" stored on them
+00000012                            12  
+00000012                            13  
+00000012                            14      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+START               0
