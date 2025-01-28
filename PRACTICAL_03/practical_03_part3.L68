@@ -1,0 +1,24 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 28/01/2025 09:47:53
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000  47F9 0000100E              4      LEA     HEALTH, A3 ; variable declarations are stored in memory after $1000 that A3 points to
+00001006  0413 000A                  5      SUB.B   #10, (A3)
+0000100A                             6  
+0000100A  FFFF FFFF                  7      SIMHALT
+0000100E                             8  
+0000100E= 64                         9  HEALTH dc.b $64
+0000100F                            10      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+HEALTH              100E
+START               1000

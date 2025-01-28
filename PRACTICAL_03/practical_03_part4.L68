@@ -1,0 +1,52 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 28/01/2025 10:53:03
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000  43F9 00001046              4      LEA     PLAYERHEALTH, A1
+00001006  45F9 00001047              5      LEA     BOSSHEALTH, A2
+0000100C  47F9 00001048              6      LEA     PLAYERPOINTS, A3
+00001012                             7  
+00001012  12BC 0063                  8      MOVE.B  #$63, (A1)
+00001016  14BC 006A                  9      MOVE.B  #$6A, (A2)
+0000101A  16BC 0010                 10      MOVE.B  #$10, (A3)
+0000101E                            11      
+0000101E  2239 0000104A             12      MOVE.L  BOSSDAMAGE, D1
+00001024  1439 00001049             13      MOVE.B  PLAYERDAMAGE, D2
+0000102A                            14      
+0000102A  9311                      15      SUB.B D1, (A1)
+0000102C  9512                      16      SUB.B D2, (A2)
+0000102E  9311                      17      SUB.B D1, (A1)
+00001030                            18      
+00001030  5A53                      19      ADD.W #$5, (A3)
+00001032  0613 0010                 20      ADD.B #$10, (A3)
+00001036  5B13                      21      SUB.B #$5, (A3)
+00001038                            22      
+00001038  0639 0010 00001049        23      ADD.B #$10, PLAYERDAMAGE
+00001040  5B12                      24      SUB.B #$5, (A2)
+00001042                            25  
+00001042  FFFF FFFF                 26      SIMHALT
+00001046                            27  
+00001046= 64                        28  PLAYERHEALTH dc.b $64
+00001047= 64                        29  BOSSHEALTH dc.b $64
+00001048= 00                        30  PLAYERPOINTS dc.b $0
+00001049= 05                        31  PLAYERDAMAGE dc.b $5
+0000104A= 10                        32  BOSSDAMAGE dc.b $10
+0000104B                            33  
+0000104B                            34      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+BOSSDAMAGE          104A
+BOSSHEALTH          1047
+PLAYERDAMAGE        1049
+PLAYERHEALTH        1046
+PLAYERPOINTS        1048
+START               1000
