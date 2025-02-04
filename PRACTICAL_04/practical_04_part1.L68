@@ -1,0 +1,31 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 04/02/2025 09:44:29
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000                             4      ; Move 100HP to memory location $3000
+00001000  11FC 0064 3000             5      MOVE.B  #100, $3000
+00001006                             6  
+00001006                             7      ; Load memory address $3000 into Address Register A1
+00001006  43F8 3000                  8      LEA     $3000, A1
+0000100A                             9      
+0000100A                            10      ; Hit for 20DMG
+0000100A  0411 0014                 11      SUB.B   #20, (A1)
+0000100E                            12      
+0000100E                            13      ; 10HP gained from health pack
+0000100E  0611 000A                 14      ADD.B   #10, (A1)
+00001012                            15  
+00001012  FFFF FFFF                 16      SIMHALT
+00001016                            17  
+00001016                            18      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+START               1000
