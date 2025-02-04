@@ -1,0 +1,40 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 04/02/2025 10:23:53
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000  11FC 0064 3000             4      MOVE.B  #100, $3000
+00001006                             5      
+00001006                             6      ; 01010101
+00001006  143C 0055                  7      MOVE.B  #85, D2
+0000100A                             8      
+0000100A                             9      ; 11001100
+0000100A  163C 00CC                 10      MOVE.B  #204, D3
+0000100E                            11      
+0000100E                            12      ; Bitwise AND D2 and D3 and store result in D3
+0000100E                            13      ; 01000100
+0000100E  C602                      14      AND.B   D2, D3
+00001010                            15      
+00001010                            16      ; Load Effective Address - LEA
+00001010  43F8 3000                 17      LEA     $3000, A1
+00001014                            18      
+00001014                            19      ; Hit for 20DMG
+00001014  0411 0014                 20      SUB.B   #20, (A1)
+00001018                            21      
+00001018                            22      ; 10HP gained from Health Pack
+00001018  0611 000A                 23      ADD.B   #10, (A1)
+0000101C                            24  
+0000101C  FFFF FFFF                 25      SIMHALT
+00001020                            26      
+00001020                            27      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+START               1000
