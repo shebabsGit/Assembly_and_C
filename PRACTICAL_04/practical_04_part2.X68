@@ -17,7 +17,7 @@ START:
     LEA     $3000, A1
     
     ; Hit for 20DMG
-    SUB.B   #20, (A1)
+    SUB.B   #$20, (A1)
     
     ; 10HP gained from Health Pack
     ADD.B   #10, (A1)
