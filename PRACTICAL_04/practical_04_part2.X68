@@ -13,6 +13,16 @@ START:
     ; 01000100
     AND.B   D2, D3
     
+    MOVE.B  #204, D3
+    
+    ; Bitwise OR operation
+    OR.B    D2, D3
+    
+    MOVE.B  #204, D3
+    
+    ; Bitwise Exclusive OR (NOT) operation
+    EOR.B   D2, D3
+    
     ; Load Effective Address - LEA
     LEA     $3000, A1
     
@@ -25,6 +35,7 @@ START:
     SIMHALT
     
     END    START
+
 *~Font name~Courier New~
 *~Font size~10~
 *~Tab type~1~

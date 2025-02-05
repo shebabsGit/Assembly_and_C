@@ -1,6 +1,6 @@
 00001000 Starting Address
 Assembler used: EASy68K Editor/Assembler v5.16.01
-Created On: 04/02/2025 10:42:26
+Created On: 05/02/2025 13:29:43
 
 00001000                             1      ORG    $1000
 00001000                             2  START:
@@ -17,18 +17,28 @@ Created On: 04/02/2025 10:42:26
 0000100E                            13      ; 01000100
 0000100E  C602                      14      AND.B   D2, D3
 00001010                            15      
-00001010                            16      ; Load Effective Address - LEA
-00001010  43F8 3000                 17      LEA     $3000, A1
-00001014                            18      
-00001014                            19      ; Hit for 20DMG
-00001014  0411 0020                 20      SUB.B   #$20, (A1)
-00001018                            21      
-00001018                            22      ; 10HP gained from Health Pack
-00001018  0611 000A                 23      ADD.B   #10, (A1)
-0000101C                            24  
-0000101C  FFFF FFFF                 25      SIMHALT
-00001020                            26      
-00001020                            27      END    START
+00001010  163C 00CC                 16      MOVE.B  #204, D3
+00001014                            17      
+00001014                            18      ; Bitwise OR operation
+00001014  8602                      19      OR.B    D2, D3
+00001016                            20      
+00001016  163C 00CC                 21      MOVE.B  #204, D3
+0000101A                            22      
+0000101A                            23      ; Bitwise Exclusive OR (NOT) operation
+0000101A  B503                      24      EOR.B   D2, D3
+0000101C                            25      
+0000101C                            26      ; Load Effective Address - LEA
+0000101C  43F8 3000                 27      LEA     $3000, A1
+00001020                            28      
+00001020                            29      ; Hit for 20DMG
+00001020  0411 0020                 30      SUB.B   #$20, (A1)
+00001024                            31      
+00001024                            32      ; 10HP gained from Health Pack
+00001024  0611 000A                 33      ADD.B   #10, (A1)
+00001028                            34  
+00001028  FFFF FFFF                 35      SIMHALT
+0000102C                            36      
+0000102C                            37      END    START
 
 No errors detected
 No warnings generated
