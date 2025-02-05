@@ -1,0 +1,53 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 05/02/2025 13:34:04
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000  11FC 0064 3000             4      MOVE.B  #100, $3000
+00001006                             5      
+00001006  43F8 3000                  6      LEA     $3000, A1
+0000100A                             7      
+0000100A                             8      ; Branch to Sub-Routine (Go and come back)
+0000100A  6100 000A                  9      BSR     TAKING_DAMAGE
+0000100E                            10      
+0000100E                            11  BACK_IN_THE_GAME:
+0000100E                            12  
+0000100E  6100 000C                 13      BSR     HEALTH_PICKUP
+00001012                            14      
+00001012                            15      ; BRanch Always (Go to)
+00001012  6000 000E                 16      BRA     GAME_END
+00001016                            17  
+00001016                            18  TAKING_DAMAGE:
+00001016                            19  
+00001016  0411 0014                 20      SUB.B   #20, (A1)
+0000101A  60F2                      21      BRA     BACK_IN_THE_GAME
+0000101C                            22      
+0000101C                            23  HEALTH_PICKUP:
+0000101C                            24  
+0000101C  0611 000A                 25      ADD.B   #10, (A1)
+00001020                            26      
+00001020                            27      ; Return To Sub-routine (Return to where got called from)
+00001020  4E75                      28      RTS
+00001022                            29  
+00001022                            30  GAME_END:
+00001022                            31  
+00001022  12BC 0000                 32      MOVE.B  #$00, (A1)
+00001026                            33  
+00001026  FFFF FFFF                 34      SIMHALT
+0000102A                            35      
+0000102A                            36      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+BACK_IN_THE_GAME    100E
+GAME_END            1022
+HEALTH_PICKUP       101C
+START               1000
+TAKING_DAMAGE       1016
