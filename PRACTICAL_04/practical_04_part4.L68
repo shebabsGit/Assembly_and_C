@@ -1,0 +1,94 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 05/02/2025 14:09:41
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000                             4      ; Player Health at $3000
+00001000  11FC 0064 3000             5      MOVE.B  #100, $3000
+00001006                             6      
+00001006                             7      ; Boss Health
+00001006  11FC 00C8 3002             8      MOVE.B  #200, $3002
+0000100C                             9      
+0000100C                            10      ; Player Damage
+0000100C  11FC 0010 3004            11      MOVE.B  #$10, $3004
+00001012                            12      
+00001012                            13      
+00001012  1438 3002                 14      MOVE.B  $3002, D2 ; Boss Health
+00001016  1638 3004                 15      MOVE.B  $3004, D3 ; Player DMG
+0000101A  43F8 3000                 16      LEA     $3000, A1 ; Player Health
+0000101E                            17  
+0000101E  6100 002A                 18      BSR     TAKING_DAMAGE ; Branch to Sub-Routine (Go and come back)
+00001022                            19      
+00001022                            20  BACK_IN_THE_GAME:
+00001022                            21  
+00001022  6100 002C                 22      BSR     HEALTH_PICKUP
+00001026  6100 000E                 23      BSR     DAMAGE_INCREASE
+0000102A  6100 0016                 24      BSR     DAMAGE_DEALT
+0000102E  6100 000E                 25      BSR     PLAYERBOSSHEALTH
+00001032                            26  
+00001032  6000 0022                 27      BRA     GAME_END ; BRanch Always (Go to)
+00001036                            28  
+00001036                            29  DAMAGE_INCREASE:
+00001036                            30  
+00001036  5403                      31      ADD.B   #2, D3 ; 2 + Player Damage
+00001038  11C3 3004                 32      MOVE.B  D3, $3004
+0000103C  4E75                      33      RTS
+0000103E                            34  
+0000103E                            35  PLAYERBOSSHEALTH:
+0000103E                            36  
+0000103E  8511                      37      OR.B    D2, (A1)
+00001040  4E75                      38      RTS
+00001042                            39  
+00001042                            40  DAMAGE_DEALT:
+00001042                            41  
+00001042  9403                      42      SUB.B   D3, D2 ; Boss Health - Player DMG
+00001044  11C2 3002                 43      MOVE.B  D2, $3002
+00001048  4E75                      44      RTS
+0000104A                            45  
+0000104A                            46  TAKING_DAMAGE:
+0000104A                            47  
+0000104A  0411 0014                 48      SUB.B   #20, (A1) ; Player HP - 20
+0000104E  60D2                      49      BRA     BACK_IN_THE_GAME
+00001050                            50  
+00001050                            51  HEALTH_PICKUP:
+00001050                            52  
+00001050  0611 000A                 53      ADD.B   #10, (A1) ; Player HP + 10
+00001054                            54      
+00001054                            55      ; Return To Sub-routine (Return to where got called from)
+00001054  4E75                      56      RTS
+00001056                            57  
+00001056                            58  GAME_END:
+00001056                            59  
+00001056  12BC 0000                 60      MOVE.B  #$00, (A1) ; Player Death, Game Over
+0000105A  103C 000E                 61      MOVE.B  #14, D0    
+0000105E  43F9 00001072             62      LEA     GAMEOVER, A1
+00001064  4E4F                      63      TRAP    #15
+00001066  43F9 00001081             64      LEA     TRYAGAIN, A1
+0000106C  4E4F                      65      TRAP    #15
+0000106E                            66  
+0000106E  FFFF FFFF                 67      SIMHALT
+00001072                            68      
+00001072= 47 61 6D 65 20 4F ...     69  GAMEOVER    dc.b    'Game Over :(', $0D, $0A, 0 ; $0D = Inserts carriage return
+00001081= 54 72 79 20 41 67 ...     70  TRYAGAIN    dc.b    'Try Again :)', 0           ; $0A = Insert line feed        Both == Newline
+0000108E                            71  
+0000108E                            72      END    START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+BACK_IN_THE_GAME    1022
+DAMAGE_DEALT        1042
+DAMAGE_INCREASE     1036
+GAMEOVER            1072
+GAME_END            1056
+HEALTH_PICKUP       1050
+PLAYERBOSSHEALTH    103E
+START               1000
+TAKING_DAMAGE       104A
+TRYAGAIN            1081
