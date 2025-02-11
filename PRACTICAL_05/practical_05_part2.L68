@@ -1,0 +1,63 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 11/02/2025 09:28:28
+
+00001000                             1      ORG    $1000
+00001000                             2  START:
+00001000                             3  
+00001000  43F9 00001034              4      LEA     PLAYER_POSITION, A1
+00001006  45F9 00001036              5      LEA     ENEMY_POSITION, A2
+0000100C                             6      
+0000100C  1211                       7      MOVE.B  (A1), D1 ; Load first element of array at A1 into D1 and increment pointer by one byte
+0000100E  1412                       8      MOVE.B  (A2), D2 ; ---
+Line 9 ERROR: Invalid syntax
+00001010                             9      MOVE.B  +(A1), D3 ; Incremented pointer loads value at new memory location into D3
+Line 10 ERROR: Invalid syntax
+00001010                            10      MOVE.B  +(A2), D4 ; ---
+00001010                            11      
+00001010                            12  COLLISION_CHECK:
+00001010  B242                      13      CMP     D2, D1
+00001012  6D00 0014                 14      BLT     NEXT_MOVE ; If D1 < D2, go to NEXT_MOVE
+00001016  6700 0002                 15      BEQ     NEXT_CHECK ; If D1 == D2, go to NEXT_CHECK
+0000101A                            16      
+0000101A                            17  NEXT_CHECK:
+0000101A  B644                      18      CMP     D4, D3
+0000101C  6D00 0006                 19      BLT     NEXT_Y
+00001020  6700 000A                 20      BEQ     COLLISION
+00001024                            21      
+00001024                            22  NEXT_Y:
+00001024  5203                      23      ADD.B   #1, D3
+00001026  60F2                      24      BRA     NEXT_CHECK
+00001028                            25  
+00001028                            26  NEXT_MOVE:
+00001028  5201                      27      ADD.B   #1, D1
+0000102A  60E4                      28      BRA     COLLISION_CHECK
+0000102C                            29      
+0000102C                            30  COLLISION:
+0000102C  6000 0002                 31      BRA     GAME_OVER
+00001030                            32      
+00001030                            33  GAME_OVER:
+00001030                            34  
+00001030  FFFF FFFF                 35      SIMHALT
+00001034                            36  
+00001034= 0A 0F                     37  PLAYER_POSITION:    DC.B 10, 15
+00001036= 32 37                     38  ENEMY_POSITION:     DC.B 50, 55
+00001038                            39  
+00001038                            40      END    START
+
+2 errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+COLLISION           102C
+COLLISION_CHECK     1010
+ENEMY_POSITION      1036
+GAME_OVER           1030
+NEXT_CHECK          101A
+NEXT_MOVE           1028
+NEXT_Y              1024
+PLAYER_POSITION     1034
+START               1000
