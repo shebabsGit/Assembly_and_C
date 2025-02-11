@@ -46,8 +46,9 @@ UPDATE:
     RTS
 
 DRAW:
-    MOVE.B  #1, D5
-    LEA     ENEMY_POSITIONS, A3
+    MOVE.B  #13, D0
+    TRAP    #15
+    RTS
 
 COLLISION:
     MOVE.B  #1, D5              ; Loop through Array
