@@ -1,0 +1,672 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 03/03/2025 23:08:27
+
+00000000                             1  *               ----------------------------------------------------------------------
+00000000                             2  *               | Title      : Ping Pong                                             |
+00000000                             3  *               | Student ID : C00295178                                             |
+00000000                             4  *               | Written by : Shehab Ahmed                                          |
+00000000                             5  *               | Date Create: 17/02/2025                                            |
+00000000                             6  *               | Description: 1-player Ping pong vs bot - Score accumulation style  |
+00000000                             7  *               ----------------------------------------------------------------------
+00000000                             8  *   ---------------------------------------------------------------------------------------------------
+00000000                             9  *   MAKE SURE .WAV FILE DECLARATIONS HAVE THE CORRECT FULL PATH TO DIRECTORY IN ORDER FOR AUDIO TO PLAY
+00000000                            10  *   ---------------------------------------------------------------------------------------------------
+00000000                            11  *   ---------------------------------------------------------------------------------------------------
+00000000                            12  *                                                   ENJOY!!
+00000000                            13  *   ---------------------------------------------------------------------------------------------------
+00000000                            14  
+00001000                            15     ORG   $1000
+00001000                            16  
+00001000  =00808080                 17  GRAY    EQU   $00808080
+00001000  =00000000                 18  BLACK   EQU   $00000000
+00001000  =00FF0000                 19  BLUE    EQU   $00FF0000
+00001000  =0000FF00                 20  GREEN   EQU   $0000FF00
+00001000                            21  
+00001000                            22  
+00001000                            23  START:
+00001000                            24  
+00001000                            25  
+00001000                            26  GAME_LOOP:
+00001000                            27  * Echo off
+00001000  103C 000C                 28      MOVE.B      #12, D0
+00001004  123C 0000                 29      MOVE.B      #0, D1
+00001008  4E4F                      30      TRAP        #15
+0000100A                            31  
+0000100A                            32  * Ball stats
+0000100A  23FC 00000140 00001606    33      MOVE.L      #320, BALLX
+00001014  23FC 00000078 0000160A    34      MOVE.L      #120, BALLY
+0000101E  23FC 00000005 0000160E    35      MOVE.L      #5, DELTAX
+00001028  23FC 00000005 00001612    36      MOVE.L      #5, DELTAY
+00001032  23FC 00000007 00001616    37      MOVE.L      #7, BALLSIZE
+0000103C                            38  
+0000103C                            39  * Paddle stats
+0000103C  23FC 00000020 0000161A    40      MOVE.L      #32, PADDLESIZE
+00001046                            41  
+00001046                            42  * Paddle 0 (Player)
+00001046  23FC 00000004 0000161E    43      MOVE.L      #4, PADDLE0X
+00001050  23FC 000000F0 00001622    44      MOVE.L      #240, PADDLE0Y
+0000105A  23FC 00000000 00001626    45      MOVE.L      #0, PADDLE0D
+00001064                            46  
+00001064                            47  * Paddle 1 (Bot)
+00001064  23FC 0000027B 0000162A    48      MOVE.L      #635, PADDLE1X
+0000106E  23FC 000000F0 0000162E    49      MOVE.L      #240, PADDLE1Y
+00001078  23FC 00000000 00001632    50      MOVE.L      #0, PADDLE1D
+00001082                            51  
+00001082                            52  * Scores
+00001082  13FC 0000 00001636        53      MOVE.B      #0, SCORE0
+0000108A  13FC 0003 00001637        54      MOVE.B      #3, LIVES
+00001092                            55  
+00001092                            56  * Enable double buffering
+00001092  103C 005C                 57      MOVE.B      #92, D0
+00001096  123C 0011                 58      MOVE.B      #17, D1
+0000109A  4E4F                      59      TRAP        #15
+0000109C                            60  
+0000109C                            61  UPDATE:
+0000109C                            62  * draw stuff
+0000109C  6100 0276                 63      BSR         DRAWCOURT
+000010A0  6100 0354                 64      BSR         DRAWBALL
+000010A4  6100 037A                 65      BSR         DRAWPADDLE0
+000010A8  6100 03A6                 66      BSR         DRAWPADDLE1
+000010AC  6100 02EA                 67      BSR         DRAWSCORE
+000010B0                            68  
+000010B0                            69  * pause for a bit and do input!
+000010B0                            70  
+000010B0  103C 0008                 71      MOVE.B      #8, D0      ; Get initial counter value
+000010B4  4E4F                      72      TRAP        #15
+000010B6  2401                      73      MOVE.L      D1, D2      ; Move it into temp space
+000010B8                            74  
+000010B8                            75  PAUSE_LOOP:
+000010B8  103C 0007                 76      MOVE.B      #7, D0
+000010BC  4E4F                      77      TRAP        #15
+000010BE  B23C 0000                 78      CMP.B       #0, D1
+000010C2  6700 002C                 79      BEQ         FAILDOWN0
+000010C6  103C 0005                 80      MOVE.B      #5, D0
+000010CA  4E4F                      81      TRAP        #15
+000010CC                            82  
+000010CC  B23C 0077                 83      CMP.B       #'w', D1
+000010D0  6600 000C                 84      BNE         FAILUP0
+000010D4  23FC FFFFFFFC 00001626    85      MOVE.L      #-4, PADDLE0D
+000010DE                            86  
+000010DE                            87  FAILUP0:
+000010DE  B23C 0073                 88      CMP.B       #'s', D1
+000010E2  6600 000C                 89      BNE         FAILDOWN0
+000010E6  23FC 00000004 00001626    90      MOVE.L      #4, PADDLE0D
+000010F0                            91  
+000010F0                            92  FAILDOWN0:
+000010F0  103C 0008                 93      MOVE.B      #8, D0      ; Get counter value
+000010F4  4E4F                      94      TRAP        #15
+000010F6  9282                      95      SUB.L       D2, D1      ; Subtract inital value from it
+000010F8  B27C 0002                 96      CMP         #2, D1      ; Check if we have passed through 2/100ths of a second
+000010FC  6DBA                      97      BLT         PAUSE_LOOP
+000010FE                            98  
+000010FE                            99  * position paddles and move
+000010FE  2C39 00001622            100      MOVE.L      PADDLE0Y, D6
+00001104  DCB9 00001626            101      ADD.L       PADDLE0D, D6
+0000110A  23C6 00001622            102      MOVE.L      D6, PADDLE0Y
+00001110                           103  
+00001110                           104  * Bot logic: Move paddle1 toward the ball's Y position
+00001110  2C39 0000160A            105      MOVE.L      BALLY, D6          ; Load ball's Y position
+00001116  2E39 0000162E            106      MOVE.L      PADDLE1Y, D7       ; Load bot paddle's Y position
+0000111C  BE86                     107      CMP.L       D6, D7             ; Compare bot paddle Y with ball Y
+0000111E  6D00 000A                108      BLT         botMoveDown        ; If paddle is above the ball, move down
+00001122  6E00 0014                109      BGT         botMoveUp          ; If paddle is below the ball, move up
+00001126  6000 001E                110      BRA         botMoveDone        ; If aligned, do nothing
+0000112A                           111  
+0000112A                           112  botMoveDown:
+0000112A  23FC 00000004 00001632   113      MOVE.L      #4, PADDLE1D    ; Move bot paddle down (slower than ball)
+00001134  6000 0010                114      BRA         botMoveDone
+00001138                           115  
+00001138                           116  botMoveUp:
+00001138  23FC FFFFFFFC 00001632   117      MOVE.L      #-4, PADDLE1D   ; Move bot paddle up (slower than ball)
+00001142  6000 0002                118      BRA         botMoveDone
+00001146                           119  
+00001146                           120  botMoveDone:
+00001146  2C39 0000162E            121      MOVE.L      PADDLE1Y, D6
+0000114C  DCB9 00001632            122      ADD.L       PADDLE1D, D6
+00001152  23C6 0000162E            123      MOVE.L      D6, PADDLE1Y
+00001158                           124  
+00001158                           125  * fix paddles to screen
+00001158  2C39 00001622            126      MOVE.L      PADDLE0Y, D6
+0000115E  9CB9 0000161A            127      SUB.L       PADDLESIZE, D6
+00001164  BC7C 0010                128      CMP         #16, D6
+00001168  6E00 000C                129      BGT         PADDLE0NOFIX
+0000116C  23FC 00000000 00001626   130      MOVE.L      #0, PADDLE0D
+00001176                           131  
+00001176                           132  PADDLE0NOFIX:
+00001176  2C39 0000162E            133      MOVE.L      PADDLE1Y, D6
+0000117C  9CB9 0000161A            134      SUB.L       PADDLESIZE, D6
+00001182  BC7C 0010                135      CMP         #16, D6
+00001186  6E00 000C                136      BGT         PADDLE1NOFIX
+0000118A  23FC 00000000 00001632   137      MOVE.L      #0, PADDLE1D
+00001194                           138  
+00001194                           139  PADDLE1NOFIX:
+00001194  2C39 00001622            140      MOVE.L      PADDLE0Y, D6
+0000119A  DCB9 0000161A            141      ADD.L       PADDLESIZE, D6
+000011A0  BC7C 01E0                142      CMP         #480, D6
+000011A4  6D00 000C                143      BLT         PADDLE0NOFIX2
+000011A8  23FC 00000000 00001626   144      MOVE.L      #0, PADDLE0D
+000011B2                           145  
+000011B2                           146  PADDLE0NOFIX2:
+000011B2  2C39 0000162E            147      MOVE.L      PADDLE1Y, D6
+000011B8  DCB9 0000161A            148      ADD.L       PADDLESIZE, D6
+000011BE  BC7C 01E0                149      CMP         #480, D6
+000011C2  6D00 000C                150      BLT         PADDLE1NOFIX2
+000011C6  23FC 00000000 00001632   151      MOVE.L      #0, PADDLE1D
+000011D0                           152  
+000011D0                           153  PADDLE1NOFIX2:
+000011D0                           154  
+000011D0                           155  * position the ball and move it
+000011D0  2C39 00001606            156      MOVE.L      BALLX, D6
+000011D6  2E39 0000160A            157      MOVE.L      BALLY, D7
+000011DC  DCB9 0000160E            158      ADD.L       DELTAX, D6
+000011E2  DEB9 00001612            159      ADD.L       DELTAY, D7
+000011E8  23C6 00001606            160      MOVE.L      D6, BALLX
+000011EE  23C7 0000160A            161      MOVE.L      D7, ballY
+000011F4                           162  
+000011F4                           163  * check balls position and change delta accordingly
+000011F4                           164  
+000011F4  6100 028A                165      BSR         SCREENCOLLIDE
+000011F8  6100 032A                166      BSR         PADDLE0COLLIDE
+000011FC  6100 036E                167      BSR         PADDLE1COLLIDE
+00001200                           168  
+00001200  103C 005E                169      MOVE.B      #94, D0
+00001204  4E4F                     170      TRAP    #15
+00001206                           171  
+00001206  1239 00001637            172      MOVE.B      LIVES, D1
+0000120C  B23C 0000                173      CMP.B       #0, D1
+00001210  6700 0006                174      BEQ         GAME_END
+00001214                           175  
+00001214  4EF8 109C                176      JMP         UPDATE
+00001218                           177  
+00001218                           178  GAME_END:
+00001218                           179  * Clear the screen and display final message
+00001218                           180  
+00001218  103C 0050                181      MOVE.B      #80, D0     ; Change the pen colour
+0000121C  7200                     182      MOVE.L      #BLACK, D1
+0000121E  4E4F                     183      TRAP    #15
+00001220                           184  
+00001220  103C 0051                185      MOVE.B      #81, D0     ; Fill colour
+00001224  7200                     186      MOVE.L      #BLACK, D1
+00001226  4E4F                     187      TRAP    #15
+00001228                           188  
+00001228  7200                     189      MOVE.L      #0, D1
+0000122A  7400                     190      MOVE.L      #0, D2
+0000122C  263C 00000280            191      MOVE.L      #640, D3
+00001232  283C 000001E0            192      MOVE.L      #480, D4
+00001238  103C 0057                193      MOVE.B      #87, D0
+0000123C  4E4F                     194      TRAP    #15
+0000123E                           195  
+0000123E  103C 0050                196      MOVE.B      #80, D0     ; Change the pen colour
+00001242  223C 00FF0000            197      MOVE.L      #BLUE, D1
+00001248  4E4F                     198      TRAP    #15
+0000124A                           199  
+0000124A  103C 0051                200      MOVE.B      #81, D0     ; Fill colour
+0000124E  7200                     201      MOVE.L      #BLACK, D1
+00001250  4E4F                     202      TRAP    #15
+00001252                           203  
+00001252  103C 000B                204      MOVE.B      #11, D0
+00001256  323C FF00                205      MOVE.W      #$FF00,D1
+0000125A  4E4F                     206      TRAP    #15
+0000125C                           207      
+0000125C  43F9 000016CA            208      LEA         YIPPEE, A1
+00001262  123C 0001                209      MOVE.B      #1, D1
+00001266  103C 0046                210      MOVE.B      #70, D0
+0000126A  4E4F                     211      TRAP    #15
+0000126C  7000                     212      MOVE.L      #0, D0
+0000126E                           213  
+0000126E                           214  PLAYER0:
+0000126E  303C 000E                215      MOVE        #14,D0              ; task number 14 (display null string)
+00001272  43F9 00001638            216      LEA         PLAYERWIN_MSG, A1   ; address of string
+00001278  4E4F                     217      TRAP    #15                     ; display it
+0000127A  4EF9 00001280            218      JMP         NOPLAY
+00001280                           219  
+00001280                           220  * From here to the end of "FORLOOP1" draws final message when game ends
+00001280                           221  
+00001280                           222  NOPLAY:
+00001280  7200                     223      MOVE.L      #0, D1
+00001282  7000                     224      MOVE.L      #0, D0
+00001284                           225      
+00001284  43F9 00001703            226      LEA         FINAL_SCORE, A1
+0000128A  103C 000D                227      MOVE.B      #13, D0
+0000128E                           228  
+0000128E  123C 0009                229      MOVE.B      #9, D1
+00001292  4E4F                     230      TRAP    #15
+00001294                           231      
+00001294  103C 0003                232      MOVE.B      #3, D0
+00001298  1239 00001636            233      MOVE.B      SCORE0, D1
+0000129E  4E4F                     234      TRAP    #15
+000012A0                           235      
+000012A0  7E00                     236      MOVE.L   #0, D7
+000012A2                           237  
+000012A2                           238  FORLOOP0:
+000012A2  7C00                     239      MOVE.L      #0, D6
+000012A4                           240  
+000012A4                           241  FORLOOP1:
+000012A4  103C 0053                242      MOVE.B      #83, D0
+000012A8  2206                     243      MOVE.L      D6, D1
+000012AA  2407                     244      MOVE.L      D7, D2
+000012AC  4E4F                     245      TRAP    #15
+000012AE  2200                     246      MOVE.L      D0, D1
+000012B0  103C 0050                247      MOVE.B      #80, D0
+000012B4  4E4F                     248      TRAP    #15
+000012B6  2206                     249      MOVE.L      D6, D1
+000012B8  2407                     250      MOVE.L      D7, D2
+000012BA  E589                     251      LSL.L       #2, D1
+000012BC  E58A                     252      LSL.L       #2, D2
+000012BE  0681 00000060            253      ADD.L       #96, D1
+000012C4  0682 000000A4            254      ADD.L       #164, D2
+000012CA  2601                     255      MOVE.L      D1, D3
+000012CC  2802                     256      MOVE.L      D2, D4
+000012CE  5C83                     257      ADD.L       #6, D3
+000012D0  5C84                     258      ADD.L       #6, D4
+000012D2  103C 005B                259      MOVE.B      #91, D0
+000012D6  4E4F                     260      TRAP    #15
+000012D8  5246                     261      ADD         #1, D6
+000012DA  BC7C 0140                262      CMP         #320, D6
+000012DE  6DC4                     263      BLT         FORLOOP1
+000012E0  5247                     264      ADD         #1, D7
+000012E2  BE7C 0010                265      CMP         #16, D7
+000012E6  6DBA                     266      BLT         FORLOOP0
+000012E8  103C 005E                267      MOVE.B      #94, D0
+000012EC  4E4F                     268      TRAP    #15
+000012EE                           269  
+000012EE                           270  * Clear the text off...
+000012EE  103C 0050                271      MOVE.B   #80, D0   ; Change the pen colour
+000012F2  7200                     272      MOVE.L   #BLACK, D1
+000012F4  4E4F                     273      TRAP     #15
+000012F6                           274  
+000012F6  103C 0051                275      MOVE.B  #81, D0    ; Fill colour
+000012FA  7200                     276      MOVE.L   #BLACK, D1
+000012FC  4E4F                     277      TRAP     #15
+000012FE                           278  
+000012FE  7200                     279      MOVE.L   #0, D1
+00001300  7400                     280      MOVE.L   #0, D2
+00001302  263C 00000140            281      MOVE.L   #320, D3
+00001308  7810                     282      MOVE.L   #16, D4
+0000130A                           283  
+0000130A  103C 0057                284      MOVE.B   #87, D0
+0000130E  4E4F                     285      TRAP     #15
+00001310                           286  
+00001310                           287  * Now to quit
+00001310  4E72 2000                288      STOP   #$2000
+00001314                           289  * =========== draw court subroutine ============
+00001314                           290  DRAWCOURT:
+00001314  103C 0050                291      MOVE.B   #80, D0   ; Change the pen colour
+00001318  7200                     292      MOVE.L   #BLACK, D1
+0000131A  4E4F                     293      TRAP     #15
+0000131C                           294  
+0000131C  103C 0051                295      MOVE.B   #81, D0   ; Fill colour
+00001320  7200                     296      MOVE.L   #BLACK, D1
+00001322  4E4F                     297      TRAP     #15
+00001324                           298  
+00001324  7200                     299      MOVE.L   #0, D1
+00001326  7400                     300      MOVE.L   #0, D2
+00001328  263C 00000280            301      MOVE.L   #640, D3
+0000132E  283C 000001E0            302      MOVE.L   #480, D4
+00001334  103C 0057                303      MOVE.B   #87, D0
+00001338  4E4F                     304      TRAP     #15   
+0000133A                           305  
+0000133A  103C 0050                306      MOVE.B   #80, D0   ; Change the pen colour
+0000133E  223C 00808080            307      MOVE.L   #GRAY, D1
+00001344  4E4F                     308      TRAP     #15
+00001346                           309  
+00001346  103C 0051                310      MOVE.B   #81, D0   ; Fill colour
+0000134A  223C 00808080            311      MOVE.L   #GRAY, D1
+00001350  4E4F                     312      TRAP     #15
+00001352                           313  
+00001352  223C 0000013F            314      MOVE.L   #319, D1   ; Center line
+00001358  7400                     315      MOVE.L   #0, D2
+0000135A  263C 00000141            316      MOVE.L   #321, D3
+00001360  283C 000001E0            317      MOVE.L   #480, D4
+00001366  103C 0057                318      MOVE.B   #87, D0
+0000136A  4E4F                     319      TRAP     #15
+0000136C                           320  
+0000136C  7200                     321      MOVE.L   #0, D1   ; Center line
+0000136E  740F                     322      MOVE.L   #15, D2
+00001370  263C 00000280            323      MOVE.L   #640, D3
+00001376  7810                     324      MOVE.L   #16, D4
+00001378  103C 0057                325      MOVE.B   #87, D0
+0000137C  4E4F                     326      TRAP     #15
+0000137E                           327  
+0000137E  103C 0050                328      MOVE.B   #80, D0   ; Change the pen colour
+00001382  223C 0000FF00            329      MOVE.L   #GREEN, D1
+00001388  4E4F                     330      TRAP     #15
+0000138A                           331  
+0000138A  103C 0051                332      MOVE.B   #81, D0   ; Fill colour
+0000138E  223C 0000FF00            333      MOVE.L   #GREEN, D1
+00001394  4E4F                     334      TRAP     #15
+00001396  4E75                     335      RTS
+00001398                           336  
+00001398                           337  * =========== draw score subroutine ============
+00001398                           338  DRAWSCORE:
+00001398  103C 0051                339      MOVE.B   #81, D0
+0000139C  7200                     340      MOVE.L   #BLACK, D1
+0000139E  4E4F                     341      TRAP     #15
+000013A0                           342  
+000013A0                           343  * player score
+000013A0  103C 000B                344      MOVE.B   #11, D0
+000013A4  323C 0500                345      MOVE.W   #$0500,D1
+000013A8  4E4F                     346      TRAP     #15
+000013AA                           347  
+000013AA  143C 000A                348      MOVE.B      #10, D2
+000013AE                           349      
+000013AE  103C 000E                350      MOVE.B      #14, D0
+000013B2  7200                     351      MOVE.L      #0, D1
+000013B4  43F9 00001646            352      LEA         SCORE_MSG, A1
+000013BA                           353      
+000013BA  123C 0009                354      MOVE.B      #9, D1
+000013BE  4E4F                     355      TRAP        #15
+000013C0                           356      
+000013C0  103C 0003                357      MOVE.B      #3, D0
+000013C4  1239 00001636            358      MOVE.B      SCORE0, D1
+000013CA  4E4F                     359      TRAP        #15
+000013CC                           360  
+000013CC                           361  
+000013CC                           362  * lives
+000013CC                           363  
+000013CC  103C 000B                364      MOVE.B      #11, D0
+000013D0  323C 4300                365      MOVE.W      #$4300,D1
+000013D4  4E4F                     366      TRAP        #15
+000013D6                           367  
+000013D6  103C 000E                368      MOVE.B      #14, D0
+000013DA  7200                     369      MOVE.L      #0, D1
+000013DC  43F9 0000164E            370      LEA         LIVES_MSG, A1
+000013E2                           371      
+000013E2  123C 0009                372      MOVE.B      #9, D1
+000013E6  4E4F                     373      TRAP        #15
+000013E8                           374      
+000013E8  103C 0003                375      MOVE.B      #3, D0
+000013EC  1239 00001637            376      MOVE.B      LIVES, D1
+000013F2  4E4F                     377      TRAP        #15
+000013F4                           378  
+000013F4  4E75                     379      RTS
+000013F6                           380  
+000013F6                           381  * =========== draw ball subroutine ============
+000013F6                           382  DRAWBALL:
+000013F6  2C39 00001606            383      MOVE.L      BALLX, D6
+000013FC  2E39 0000160A            384      MOVE.L      BALLY, D7
+00001402  2206                     385      MOVE.L      D6, D1   ; Move X
+00001404  2606                     386      MOVE.L      D6, D3   ; Move X
+00001406  2407                     387      MOVE.L      D7, D2   ; Move Y
+00001408  2807                     388      MOVE.L      D7, D4   ; Move Y
+0000140A                           389  
+0000140A  2A39 00001616            390      MOVE.L      BALLSIZE, D5   ; Give the ball a size
+00001410  9245                     391      SUB         D5, D1
+00001412  9445                     392      SUB         D5, D2
+00001414  D645                     393      ADD         D5, D3
+00001416  D845                     394      ADD         D5, D4
+00001418                           395  
+00001418  103C 0058                396      MOVE.B      #88, D0   ; Draw a circle
+0000141C  4E4F                     397      TRAP        #15
+0000141E                           398  
+0000141E  4E75                     399      RTS
+00001420                           400  
+00001420                           401  * =========== draw paddle 0 subroutine ============
+00001420                           402  DRAWPADDLE0:
+00001420  2C39 0000161E            403      MOVE.L      PADDLE0X, D6
+00001426  2E39 00001622            404      MOVE.L      PADDLE0Y, D7
+0000142C  2206                     405      MOVE.L      D6, D1   ; Move X
+0000142E  2606                     406      MOVE.L      D6, D3   ; Move X
+00001430  2407                     407      MOVE.L      D7, D2   ; Move Y
+00001432  2807                     408      MOVE.L      D7, D4   ; Move Y
+00001434                           409  
+00001434  2A39 00001616            410      MOVE.L      BALLSIZE, D5   ; Give the paddle a size
+0000143A  9245                     411      SUB         D5, D1
+0000143C  D645                     412      ADD         D5, D3
+0000143E                           413  
+0000143E  2A39 0000161A            414      MOVE.L      PADDLESIZE, D5   ; Give the paddle a size
+00001444  9445                     415      SUB         D5, D2
+00001446  D845                     416      ADD         D5, D4
+00001448                           417  
+00001448  103C 0057                418      MOVE.B      #87, D0   ; Draw a block
+0000144C  4E4F                     419      TRAP        #15
+0000144E                           420  
+0000144E  4E75                     421      RTS
+00001450                           422  
+00001450                           423  * =========== draw paddle 1 subroutine ============
+00001450                           424  DRAWPADDLE1:
+00001450  2C39 0000162A            425      MOVE.L      PADDLE1X, D6
+00001456  2E39 0000162E            426      MOVE.L      PADDLE1Y, D7
+0000145C  2206                     427      MOVE.L      D6, D1   ; Move X
+0000145E  2606                     428      MOVE.L      D6, D3   ; Move X
+00001460  2407                     429      MOVE.L      D7, D2   ; Move Y
+00001462  2807                     430      MOVE.L      D7, D4   ; Move Y
+00001464                           431  
+00001464  2A39 00001616            432      MOVE.L      BALLSIZE, D5   ; Give the paddle a size
+0000146A  9245                     433      SUB         D5, D1
+0000146C  D645                     434      ADD         D5, D3
+0000146E                           435  
+0000146E  2A39 0000161A            436      MOVE.L      PADDLESIZE, D5   ; Give the paddle a size
+00001474  9445                     437      SUB         D5, D2
+00001476  D845                     438      ADD         D5, D4
+00001478                           439  
+00001478  103C 0057                440      MOVE.B      #87, D0   ; Draw a block
+0000147C  4E4F                     441      TRAP        #15
+0000147E                           442  
+0000147E  4E75                     443      RTS
+00001480                           444  
+00001480                           445  * =========== collision with screen subroutine ============
+00001480                           446  SCREENCOLLIDE:
+00001480  BC7C 0280                447      CMP   #640, D6
+00001484  6E00 001C                448      BGT   SCNBALLXREV0
+00001488  BC7C 0000                449      CMP   #0, D6
+0000148C  6D00 004C                450      BLT   SCNBALLXREV1
+00001490  BE7C 01E0                451      CMP   #480, D7
+00001494  6E00 007C                452      BGT   SCNBALLYREV
+00001498  BE7C 0018                453      CMP   #24, D7
+0000149C  6D00 0074                454      BLT   SCNBALLYREV
+000014A0                           455  SCNENDY:
+000014A0  4E75                     456      RTS
+000014A2                           457  
+000014A2                           458  * ---------- Player scores --------------
+000014A2                           459  SCNBALLXREV0:
+000014A2  1039 00001636            460      MOVE.B   SCORE0, D0
+000014A8  5A00                     461      ADD.B    #5, D0
+000014AA  13C0 00001636            462      MOVE.B   D0, SCORE0
+000014B0  23FC 00000140 00001606   463      MOVE.L   #320, BALLX
+000014BA  23FC 00000078 0000160A   464      MOVE.L   #120, BALLY
+000014C4  23FC FFFFFFFB 0000160E   465      MOVE.L   #-5, DELTAX
+000014CE  23FC 00000005 00001612   466      MOVE.L   #5, DELTAY
+000014D8  4E75                     467      RTS      Why wait when someones already scored?
+000014DA                           468  
+000014DA                           469  * ---------- Bot scores -----------------
+000014DA                           470  SCNBALLXREV1:
+000014DA                           471  
+000014DA  1639 00001637            472      MOVE.B      LIVES, D3
+000014E0  5303                     473      SUB.B       #1, D3
+000014E2  13C3 00001637            474      MOVE.B      D3, LIVES
+000014E8                           475      
+000014E8  23FC 00000140 00001606   476      MOVE.L      #320, BALLX
+000014F2  23FC 00000078 0000160A   477      MOVE.L      #120, BALLY
+000014FC  23FC 00000004 0000160E   478      MOVE.L      #4, DELTAX
+00001506  23FC 00000005 00001612   479      MOVE.L      #5, DELTAY
+00001510  4E75                     480      RTS         Why wait when someones already scored?
+00001512                           481  
+00001512                           482  
+00001512                           483  SCNBALLYREV: 
+00001512  2039 00001612            484      MOVE.L      DELTAY, D0
+00001518  4480                     485      NEG.L       D0
+0000151A  23C0 00001612            486      MOVE.L      D0, DELTAY
+00001520  4EF8 14A0                487      JMP         SCNENDY
+00001524                           488  
+00001524                           489  
+00001524                           490  * =========== paddle0 collision subroutine ============
+00001524                           491  PADDLE0COLLIDE:
+00001524  2039 00001606            492      MOVE.L      BALLX, D0
+0000152A  2239 0000160A            493      MOVE.L      BALLY, D1
+00001530  2C39 0000161E            494      MOVE.L      PADDLE0X, D6
+00001536  2E39 00001622            495      MOVE.L      PADDLE0Y, D7
+0000153C                           496      
+0000153C                           497  * first off, are we actually like kinda within the y bounds
+0000153C  2A07                     498      MOVE.L      D7, D5
+0000153E  9AB9 0000161A            499      SUB.L       PADDLESIZE, D5  ; Paddle Y top
+00001544  B245                     500      CMP         D5, D1          ; Compare ball Y with paddle Y
+00001546  6D00 0022                501      BLT         FAILPADDLE0     ; If its less than we fail
+0000154A                           502  
+0000154A  2A07                     503      MOVE.L      D7, D5
+0000154C  DAB9 0000161A            504      ADD.L       PADDLESIZE, D5  ; Paddle Y bottom
+00001552  B245                     505      CMP         D5, D1          ; Compare ball Y with paddle Y
+00001554  6E00 0014                506      BGT         FAILPADDLE0     ; If its greater than we fail
+00001558                           507  
+00001558                           508  * if its greater than the right
+00001558  DCB9 00001616            509      ADD.L       BALLSIZE, D6
+0000155E  B046                     510      CMP         D6, D0
+00001560  6E00 0008                511      BGT         FAILPADDLE0
+00001564                           512  
+00001564                           513  * we are colliding! lets invert 
+00001564  4EF9 000015B4            514      JMP         PDBALLXREV0
+0000156A                           515  FAILPADDLE0:
+0000156A  4E75                     516      RTS
+0000156C                           517  
+0000156C                           518  * =========== paddle1 collision subroutine ============ 
+0000156C                           519  PADDLE1COLLIDE:
+0000156C  2039 00001606            520      MOVE.L      BALLX, D0
+00001572  2239 0000160A            521      MOVE.L      BALLY, D1
+00001578  2C39 0000162A            522      MOVE.L      PADDLE1X, D6
+0000157E  2E39 0000162E            523      MOVE.L      PADDLE1Y, D7
+00001584                           524  
+00001584                           525  * first off, are we actually like kinda within the y bounds
+00001584  2A07                     526      MOVE.L      D7, D5
+00001586  9AB9 0000161A            527      SUB.L       PADDLESIZE, D5    ; Paddle Y top
+0000158C  B245                     528      CMP         D5, D1            ; Compare ball Y with paddle Y
+0000158E  6D00 0022                529      BLT         FAILPADDLE1       ; If its less than we fail
+00001592                           530  
+00001592  2A07                     531      MOVE.L      D7, D5
+00001594  DAB9 0000161A            532      ADD.L       PADDLESIZE, D5    ; Paddle Y bottom
+0000159A  B245                     533      CMP         D5, D1            ; Compare ball Y with paddle Y
+0000159C  6E00 0014                534      BGT         FAILPADDLE1       ; If its greater than we fail
+000015A0                           535  
+000015A0                           536  * if its less than the left
+000015A0  9CB9 00001616            537      SUB.L       BALLSIZE, D6
+000015A6  B046                     538      CMP         D6, D0
+000015A8  6D00 0008                539      BLT         FAILPADDLE1
+000015AC                           540  
+000015AC                           541  * we are colliding! lets invert
+000015AC  4EF9 000015E4            542      JMP         PDBALLXREV1
+000015B2                           543  
+000015B2                           544  FAILPADDLE1:
+000015B2  4E75                     545      RTS
+000015B4                           546  
+000015B4                           547  * =========== paddle collision response subishroutine ============
+000015B4                           548  PDBALLXREV0:
+000015B4                           549  
+000015B4  1639 00001636            550      MOVE.B      SCORE0, D3
+000015BA  5403                     551      ADD.B       #2, D3     ; Point adding for hitting the ball back
+000015BC  13C3 00001636            552      MOVE.B      D3, SCORE0
+000015C2                           553      
+000015C2  43F9 00001656            554      LEA         HITSOUND0, A1
+000015C8  123C 0001                555      MOVE.B      #1, D1
+000015CC  103C 0046                556      MOVE.B      #70, D0 ; Ping pong sound played
+000015D0  4E4F                     557      TRAP    #15
+000015D2  7000                     558      MOVE.L      #0, D0
+000015D4                           559      
+000015D4  2039 0000160E            560      MOVE.L      DELTAX, D0
+000015DA  4480                     561      NEG.L       D0
+000015DC  23C0 0000160E            562      MOVE.L      D0, DELTAX
+000015E2  4E75                     563      RTS
+000015E4                           564      
+000015E4                           565  PDBALLXREV1:
+000015E4                           566      
+000015E4  43F9 00001690            567      LEA         HITSOUND1, A1
+000015EA  123C 0001                568      MOVE.B      #1, D1
+000015EE  103C 0046                569      MOVE.B      #70, D0
+000015F2  4E4F                     570      TRAP    #15
+000015F4  7000                     571      MOVE.L      #0, D0
+000015F6                           572      
+000015F6  2039 0000160E            573      MOVE.L      DELTAX, D0
+000015FC  4480                     574      NEG.L       D0
+000015FE  23C0 0000160E            575      MOVE.L      D0, DELTAX
+00001604                           576      
+00001604  4E75                     577      RTS
+00001606                           578  
+00001606                           579  BALLX           ds.l    1
+0000160A                           580  BALLY           ds.l    1
+0000160E                           581  DELTAX          ds.l    1
+00001612                           582  DELTAY          ds.l    1
+00001616                           583  BALLSIZE        ds.l    1
+0000161A                           584  PADDLESIZE      ds.l    1
+0000161E                           585  PADDLE0X        ds.l    1
+00001622                           586  PADDLE0Y        ds.l    1
+00001626                           587  PADDLE0D        ds.l    1
+0000162A                           588  PADDLE1X        ds.l    1
+0000162E                           589  PADDLE1Y        ds.l    1
+00001632                           590  PADDLE1D        ds.l    1
+00001636                           591  SCORE0          ds.b    1
+00001637                           592  LIVES           ds.b    1
+00001638= 59 49 50 50 45 45 ...    593  PLAYERWIN_MSG   dc.b    'YIPPEEE! :D', $0A, $0D, 0
+00001646= 53 63 6F 72 65 3A ...    594  SCORE_MSG       dc.b    'Score: ', 0
+0000164E= 4C 69 76 65 73 3A ...    595  LIVES_MSG       dc.b    'Lives: ', 0
+00001656= 43 3A 5C 55 73 65 ...    596  HITSOUND0       dc.b    'C:\Users\user\Desktop\ASSEMBLY_PROJECT_I\pingpongDeep.wav', 0
+00001690= 43 3A 5C 55 73 65 ...    597  HITSOUND1       dc.b    'C:\Users\user\Desktop\ASSEMBLY_PROJECT_I\pingpongSoft.wav', 0
+000016CA= 43 3A 5C 55 73 65 ...    598  YIPPEE          dc.b    'C:\Users\user\Desktop\ASSEMBLY_PROJECT_I\yippeeSound.wav', 0
+00001703= 46 49 4E 41 4C 20 ...    599  FINAL_SCORE     dc.b    'FINAL SCORE: ', 0
+00001711                           600  
+00001711                           601      END   START
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+BALLSIZE            1616
+BALLX               1606
+BALLY               160A
+BLACK               0
+BLUE                FF0000
+BOTMOVEDONE         1146
+BOTMOVEDOWN         112A
+BOTMOVEUP           1138
+DELTAX              160E
+DELTAY              1612
+DRAWBALL            13F6
+DRAWCOURT           1314
+DRAWPADDLE0         1420
+DRAWPADDLE1         1450
+DRAWSCORE           1398
+FAILDOWN0           10F0
+FAILPADDLE0         156A
+FAILPADDLE1         15B2
+FAILUP0             10DE
+FINAL_SCORE         1703
+FORLOOP0            12A2
+FORLOOP1            12A4
+GAME_END            1218
+GAME_LOOP           1000
+GRAY                808080
+GREEN               FF00
+HITSOUND0           1656
+HITSOUND1           1690
+LIVES               1637
+LIVES_MSG           164E
+NOPLAY              1280
+PADDLE0COLLIDE      1524
+PADDLE0D            1626
+PADDLE0NOFIX        1176
+PADDLE0NOFIX2       11B2
+PADDLE0X            161E
+PADDLE0Y            1622
+PADDLE1COLLIDE      156C
+PADDLE1D            1632
+PADDLE1NOFIX        1194
+PADDLE1NOFIX2       11D0
+PADDLE1X            162A
+PADDLE1Y            162E
+PADDLESIZE          161A
+PAUSE_LOOP          10B8
+PDBALLXREV0         15B4
+PDBALLXREV1         15E4
+PLAYER0             126E
+PLAYERWIN_MSG       1638
+SCNBALLXREV0        14A2
+SCNBALLXREV1        14DA
+SCNBALLYREV         1512
+SCNENDY             14A0
+SCORE0              1636
+SCORE_MSG           1646
+SCREENCOLLIDE       1480
+START               1000
+UPDATE              109C
+YIPPEE              16CA
